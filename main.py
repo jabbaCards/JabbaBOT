@@ -4,12 +4,11 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL atualizada com a lógica de link direto para Pokemon TCG
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbxJjXKM7BoeRu7gJVlo1MpzZ6wQuQGfKBUjVseKctjZd1ilthNLo4_V8ykKovk6H6PM/exec"
+# URL atualizada
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbx8aSucqKlJVvOIu5DDjykNlfBPyWYdeU6-HLEeloV1mU3a2BVrrUlQPPHHyaAVpQgt/exec"
 
 def main():
     try:
-        # Chamada ao script. Não precisa de parâmetro pois já fixamos "pokemon tcg" no Google Script
         resposta = requests.get(URL_DO_GOOGLE, timeout=30)
         dados = resposta.json()
         
@@ -19,17 +18,16 @@ def main():
         
         # Mensagem formatada
         mensagem = (
-            f"🚀 *JABBABOT ATIVO (TCG Mode)*\n\n"
-            f"📦 {titulo}\n"
-            f"💰 {preco}\n"
+            f"🚀 *JABBABOT ATIVO*\n\n"
+            f"📦 *Produto:* {titulo}\n"
+            f"💰 *Preço:* {preco}\n\n"
             f"🔗 {link}"
         )
         
-        # Envio para o Telegram
         requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
-                      json={"chat_id": CHAT_ID, "text": mensagem})
+                      json={"chat_id": CHAT_ID, "text": mensagem, "parse_mode": "Markdown"})
         
-        print("✅ Execução finalizada com sucesso.")
+        print("✅ Execução finalizada.")
         
     except Exception as e:
         print(f"❌ Erro na execução: {e}")
