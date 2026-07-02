@@ -1,8 +1,6 @@
-print("🚀 INICIOU O BOT")
+print("🚀 BOT INICIOU")
 
-import os
+for i in range(5):
+    print("LOOP:", i)
 
-print("TOKEN EXISTE:", "TELEGRAM_TOKEN" in os.environ)
-print("CHAT_ID EXISTE:", "CHAT_ID" in os.environ)
-
-print("🚀 FINAL DO TESTE")
+print("🚀 BOT FINALIZOU")
