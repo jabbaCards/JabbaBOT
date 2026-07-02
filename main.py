@@ -1,5 +1,14 @@
-print("INICIO")
+import os
+import requests
 
-print("PASSO 1")
-print("PASSO 2")
-print("PASSO FINAL")
+TOKEN = os.environ["TELEGRAM_TOKEN"]
+CHAT_ID = os.environ["CHAT_ID"]
+
+print("BOT RODANDO OK")
+
+url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+
+requests.post(url, json={
+    "chat_id": CHAT_ID,
+    "text": "🚀 BOT VOLTOU A FUNCIONAR"
+})
