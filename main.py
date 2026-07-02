@@ -5,7 +5,7 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL do seu Túnel Google (Versão 4 com User-Agent de Navegador)
+# URL do seu Túnel Google (Versão 4, com User-Agent de navegador)
 URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbwZ3KvyM2TSJazfqCoSyAgASQYhMYTsRCV0Tlr55c_q6A_Th0tjIt4GCzgSimYjRjI/exec"
 
 def enviar_mensagem(texto):
@@ -14,8 +14,8 @@ def enviar_mensagem(texto):
 
 def buscar_oferta():
     try:
-        # Busca genérica por pokemon
-        url_busca = f"{URL_DO_GOOGLE}?q=pokemon"
+        # Buscando por 'iphone' para confirmar que o bloqueio 'forbidden' foi superado
+        url_busca = f"{URL_DO_GOOGLE}?q=iphone"
         resposta = requests.get(url_busca, timeout=20)
         
         if resposta.status_code != 200:
@@ -23,38 +23,38 @@ def buscar_oferta():
             
         dados = resposta.json()
         
-        # Verifica se temos resultados na busca
+        # Verifica se a lista não está vazia
         if "results" in dados and len(dados["results"]) > 0:
             item = dados["results"][0]
-            # Formata os dados para o Telegram
+            # Formata os dados
             return {
                 "titulo": item["title"],
                 "preco": f"{item['price']:.2f}".replace(".", ","),
                 "link": item["permalink"]
             }
         
-        return "⚠️ O túnel respondeu, mas não encontrou produtos para 'pokemon'."
+        return "⚠️ O túnel funcionou, mas a busca por 'iphone' não retornou produtos."
             
     except Exception as e:
         return f"❌ Erro na conexão: {str(e)}"
 
 def main():
-    print("🚀 Iniciando JabbaBOT (Versão Final)...")
+    print("🚀 Executando JabbaBOT v4...")
     resultado = buscar_oferta()
     
     if isinstance(resultado, dict):
-        mensagem = f"""🔥 *OFERTA ENCONTRADA (JabbaBOT)* 🔥
+        mensagem = f"""🔥 *OFERTA ENCONTRADA (JabbaBOT v4)* 🔥
 
 📦 {resultado['titulo']}
 💰 R$ {resultado['preco']}
 
 🔗 {resultado['link']}
 
-💡 *Dica:* Copie o link e gere seu afiliado!"""
+✅ *Status:* Túnel de acesso livre!"""
         enviar_mensagem(mensagem)
         print("✅ Sucesso! Mensagem enviada para o Telegram.")
     else:
-        # Em caso de erro, avisa no Telegram para você saber o que houve
+        # Caso ocorra erro ou lista vazia, envia para o Telegram
         enviar_mensagem(f"🔍 Debug JabbaBOT: {resultado}")
         print("Aviso enviado.")
 
