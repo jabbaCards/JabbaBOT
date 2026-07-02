@@ -12,19 +12,19 @@ def buscar_oferta_api():
     # A URL original da API do ML
     url_ml = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon+tcg+etb&limit=1"
     
-    # Nosso Túnel (Proxy) para esconder o IP do GitHub
-    proxy_url = f"https://api.allorigins.win/raw?url={url_ml}"
+    # Novo Túnel (CodeTabs) - Mais rápido e estável
+    proxy_url = f"https://api.codetabs.com/v1/proxy?quest={url_ml}"
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
     }
     
     try:
-        # Fazendo a busca através do túnel
+        # Fazendo a busca através do novo túnel (espera até 15s)
         resposta = requests.get(proxy_url, headers=headers, timeout=15)
         
         if resposta.status_code != 200:
-            return f"⚠️ O Túnel também foi bloqueado (Status: {resposta.status_code})"
+            return f"⚠️ O Túnel 2 também foi bloqueado (Status: {resposta.status_code})"
             
         dados = resposta.json()
         
@@ -43,9 +43,10 @@ def buscar_oferta_api():
             return "⚠️ O túnel funcionou, mas a busca não retornou produtos."
             
     except Exception as e:
-        return f"❌ Erro no Túnel: {str(e)}"
+        return f"❌ Erro no Túnel 2: {str(e)}"
 
 def main():
+    print("🚀 Testando novo túnel CodeTabs...")
     resultado = buscar_oferta_api()
     
     if isinstance(resultado, dict):
@@ -59,7 +60,7 @@ def main():
 💡 *Ação:* Copie esse link, gere o seu link de afiliado no app do ML e poste no grupo principal!"""
         
         enviar_mensagem(mensagem)
-        print("✅ Oferta enviada via Túnel!")
+        print("✅ Oferta enviada via Túnel 2!")
     else:
         enviar_mensagem(resultado)
         print("Aviso enviado.")
