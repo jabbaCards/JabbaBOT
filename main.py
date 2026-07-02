@@ -10,19 +10,29 @@ def enviar_mensagem(texto):
     requests.post(url, json={"chat_id": CHAT_ID, "text": texto})
 
 def buscar_oferta_real():
-    print("🔎 Varrendo o Mercado Livre por Pokémon TCG ETB...")
-    # URL de busca focada em ETB para testarmos
     url = "https://lista.mercadolivre.com.br/pokemon-tcg-etb"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    
+    # Cabeçalho para fingir que somos um navegador de verdade e evitar bloqueio
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "pt-BR,pt;q=0.9"
+    }
     
     try:
         resposta = requests.get(url, headers=headers)
+        
+        # Se o Mercado Livre barrar, ele avisa no Telegram
+        if resposta.status_code != 200:
+            return f"⚠️ O Mercado Livre bloqueou o robô (Status: {resposta.status_code})"
+            
         soup = BeautifulSoup(resposta.text, "html.parser")
         
-        # Pega a lista de produtos
+        # Tenta pegar os cards de produtos
         itens = soup.select(".ui-search-layout__item")
         
-        # Vai olhar o primeiro produto válido da lista
+        if not itens:
+            return "⚠️ O robô acessou o site, mas o Mercado Livre mudou o código HTML (nenhum card encontrado)."
+            
         for item in itens:
             titulo = item.select_one(".ui-search-item__title")
             preco = item.select_one(".andes-money-amount__fraction")
@@ -34,27 +44,27 @@ def buscar_oferta_real():
                     "preco": preco.text,
                     "link": link["href"]
                 }
-    except Exception as e:
-        print(f"Erro durante a raspagem: {e}")
+                
+        return "⚠️ Encontrou produtos, mas não achou a tag de preço ou título."
         
-    return None
+    except Exception as e:
+        return f"❌ Erro no código do robô: {str(e)}"
 
 def main():
-    print("🚀 JabbaBOT v1.1 - Iniciando...")
-    oferta = buscar_oferta_real()
+    resultado = buscar_oferta_real()
     
-    if oferta:
+    # Se o resultado for um dicionário (oferta real), ele monta a mensagem bonita
+    if isinstance(resultado, dict):
         mensagem = f"""🔥 *OFERTA ENCONTRADA!*
 
-📦 {oferta['titulo']}
-💰 R$ {oferta['preco']}
+📦 {resultado['titulo']}
+💰 R$ {resultado['preco']}
 
-🔗 Link: {oferta['link']}"""
-        
+🔗 Link: {resultado['link']}"""
         enviar_mensagem(mensagem)
-        print("✅ Oferta real enviada com sucesso no Telegram!")
     else:
-        print("❌ Nenhuma oferta encontrada ou o layout do ML mudou.")
+        # Se deu algum problema, envia o erro pro Telegram pra gente não precisar olhar o GitHub
+        enviar_mensagem(resultado)
 
 if __name__ == "__main__":
     main()
