@@ -4,12 +4,12 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL da Amazon (Versão de Limpeza)
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbwhiY0w5RSlwYyrFGQtdt5WUnyePyO-0pY2N8D-2s7Vy2Y9rbq_iz3Gf7mBDlgQGmH3/exec"
+# Nova URL (Atualizada)
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbxm2n_qRnwtl0INS3TD1CUdL3H6ajttrq5rykDeGoXcNO7ELjUcmDKgA4teQYFhkqQU/exec"
 
 def main():
     try:
-        # Busca os dados processados pelo Script
+        # Chamada ao seu Script
         resposta = requests.get(f"{URL_DO_GOOGLE}?q=pokemon", timeout=30)
         dados = resposta.json()
         
@@ -28,7 +28,7 @@ def main():
         requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
                       json={"chat_id": CHAT_ID, "text": mensagem})
         
-        print("✅ Dados enviados com sucesso!")
+        print("✅ Execução finalizada.")
         
     except Exception as e:
         print(f"❌ Erro na execução: {e}")
