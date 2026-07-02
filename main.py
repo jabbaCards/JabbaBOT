@@ -4,7 +4,6 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL do seu Túnel Google já integrada
 URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycby5g79zg2nbNKRLUjzIQLyyPvZQzgvsF_juNKEfIBSGJCP0qtodVGbE0XFUduKBsJIl/exec"
 
 def enviar_mensagem(texto):
@@ -13,9 +12,15 @@ def enviar_mensagem(texto):
 
 def buscar_oferta_google():
     try:
-        # Acessando o ML através do seu Script Google (Passe VIP)
-        resposta = requests.get(f"{URL_DO_GOOGLE}?q=pokemon+tcg+etb", timeout=20)
+        # Aumentamos o limite para ter mais chances de capturar algo
+        url_busca = f"{URL_DO_GOOGLE}?q=pokemon+tcg+etb&limit=5"
+        resposta = requests.get(url_busca, timeout=20)
+        
+        # Vamos depurar: se o JSON estiver vazio, ele nos avisa
         dados = resposta.json()
+        
+        # Se você quiser ver o que o ML responde, cheque os logs do GitHub Actions
+        print("Resposta bruta do ML:", dados)
         
         if "results" in dados and len(dados["results"]) > 0:
             produto = dados["results"][0]
@@ -29,30 +34,20 @@ def buscar_oferta_google():
                 "link": link
             }
         else:
-            return "⚠️ O túnel funcionou, mas a busca no ML não retornou produtos."
+            return "⚠️ O Google acessou, mas a lista de 'results' veio vazia. O ML pode ter mudado a forma de listar."
             
     except Exception as e:
-        return f"❌ Erro no túnel da Google: {str(e)}"
+        return f"❌ Erro na busca: {str(e)}"
 
 def main():
-    print("🚀 Iniciando JabbaBOT v2.0 via Google Tunnel...")
     resultado = buscar_oferta_google()
     
     if isinstance(resultado, dict):
-        mensagem = f"""🔥 *ALERTA DE OFERTA (JabbaBOT)* 🔥
-
-📦 {resultado['titulo']}
-💰 R$ {resultado['preco']}
-
-🔗 *Link original:* {resultado['link']}
-
-💡 *Ação:* Copie esse link, gere o seu link de afiliado e poste no grupo!"""
-        
+        mensagem = f"🔥 *OFERTA ENCONTRADA!* \n\n📦 {resultado['titulo']}\n💰 R$ {resultado['preco']}\n🔗 {resultado['link']}"
         enviar_mensagem(mensagem)
-        print("✅ Sucesso! Oferta enviada para o seu Telegram.")
     else:
-        enviar_mensagem(resultado)
-        print("Aviso enviado.")
+        # Envia o erro pro Telegram para sabermos o que aconteceu sem precisar abrir o GitHub
+        enviar_mensagem(f"🔍 Debug JabbaBOT: {resultado}")
 
 if __name__ == "__main__":
     main()
