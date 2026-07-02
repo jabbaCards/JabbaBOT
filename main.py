@@ -5,48 +5,26 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL da Versão 5 (Última tentativa via Script)
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbytP5p5DaUxjQS7Z0SHuLFCNwjj729SbCupSwriTuQ7lZ6AEkvXJbTqjDfdk3YKKogq/exec"
-
-def enviar_mensagem(texto):
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": CHAT_ID, "text": texto})
-
-def buscar_oferta():
-    try:
-        # Busca usando a nova versão do script
-        url_busca = f"{URL_DO_GOOGLE}?q=pokemon"
-        resposta = requests.get(url_busca, timeout=20)
-        
-        if resposta.status_code != 200:
-            return f"❌ Erro HTTP {resposta.status_code}."
-            
-        dados = resposta.json()
-        
-        # Verifica a estrutura da resposta do Mercado Livre
-        if isinstance(dados, dict) and "results" in dados and len(dados["results"]) > 0:
-            item = dados["results"][0]
-            return {
-                "titulo": item["title"],
-                "preco": f"{item['price']:.2f}".replace(".", ","),
-                "link": item["permalink"]
-            }
-        
-        # Se chegar aqui, o JSON veio, mas os resultados estão vazios
-        return f"⚠️ JSON recebido, mas vazio: {str(dados)[:100]}"
-            
-    except Exception as e:
-        return f"❌ Erro: {str(e)}"
+# URL da Versão 7 (Extração via HTML)
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbzS1tT2GA0zcrgMKDSr7ev94wuXKo2cjF1d1qkfj_MYSNk9aFdNeb6BwDhRcMbQjBku/exec"
 
 def main():
-    print("🚀 Iniciando JabbaBOT v5...")
-    resultado = buscar_oferta()
-    
-    if isinstance(resultado, dict):
-        mensagem = f"🔥 *OFERTA ENCONTRADA!*\n\n📦 {resultado['titulo']}\n💰 R$ {resultado['preco']}\n🔗 {resultado['link']}"
-        enviar_mensagem(mensagem)
-    else:
-        enviar_mensagem(f"🔍 Debug JabbaBOT: {resultado}")
+    try:
+        # Busca os dados processados pelo seu Script
+        # Adicionamos um parâmetro ?q=pokemon para garantir a busca
+        resposta = requests.get(f"{URL_DO_GOOGLE}?q=pokemon", timeout=30).json()
+        
+        # Prepara a mensagem formatada
+        mensagem = f"🔥 *JABBABOT ATIVO (Versão 7)* 🔥\n\n📦 {resposta['titulo']}\n💰 R$ {resposta['preco']}"
+        
+        # Envia para o Telegram
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
+                      json={"chat_id": CHAT_ID, "text": mensagem})
+        
+        print("✅ Sucesso! Oferta enviada para o Telegram.")
+        
+    except Exception as e:
+        print(f"❌ Erro ao executar o JabbaBOT: {e}")
 
 if __name__ == "__main__":
     main()
