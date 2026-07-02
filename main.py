@@ -1,14 +1,24 @@
 def buscar_oferta():
     headers = {"User-Agent": "Mozilla/5.0"}
-    r = requests.get(URL, headers=headers)
 
-    print("STATUS PAGE:", r.status_code)
-    print("TAMANHO HTML:", len(r.text))
+    url = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon%20tcg"
 
-    soup = BeautifulSoup(r.text, "lxml")
+    r = requests.get(url, headers=headers)
+    data = r.json()
 
-    itens = soup.select(".ui-search-result__wrapper")
+    for item in data["results"]:
+        titulo = item["title"].lower()
+        preco = int(item["price"])
+        link = item["permalink"]
 
-    print("ITENS ENCONTRADOS:", len(itens))
+        if preco > MAX_PRICE:
+            continue
+
+        if any(k in titulo for k in KEYWORDS):
+            return {
+                "titulo": item["title"],
+                "preco": preco,
+                "link": link
+            }
 
     return None
