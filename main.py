@@ -5,8 +5,8 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL do seu Túnel Google (Versão 4, com User-Agent de navegador)
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbwZ3KvyM2TSJazfqCoSyAgASQYhMYTsRCV0Tlr55c_q6A_Th0tjIt4GCzgSimYjRjI/exec"
+# URL da Versão 5 (Última tentativa via Script)
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbytP5p5DaUxjQS7Z0SHuLFCNwjj729SbCupSwriTuQ7lZ6AEkvXJbTqjDfdk3YKKogq/exec"
 
 def enviar_mensagem(texto):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -14,49 +14,39 @@ def enviar_mensagem(texto):
 
 def buscar_oferta():
     try:
-        # Buscando por 'iphone' para confirmar que o bloqueio 'forbidden' foi superado
-        url_busca = f"{URL_DO_GOOGLE}?q=iphone"
+        # Busca usando a nova versão do script
+        url_busca = f"{URL_DO_GOOGLE}?q=pokemon"
         resposta = requests.get(url_busca, timeout=20)
         
         if resposta.status_code != 200:
-            return f"❌ Erro HTTP {resposta.status_code}: O Mercado Livre bloqueou o acesso."
+            return f"❌ Erro HTTP {resposta.status_code}."
             
         dados = resposta.json()
         
-        # Verifica se a lista não está vazia
-        if "results" in dados and len(dados["results"]) > 0:
+        # Verifica a estrutura da resposta do Mercado Livre
+        if isinstance(dados, dict) and "results" in dados and len(dados["results"]) > 0:
             item = dados["results"][0]
-            # Formata os dados
             return {
                 "titulo": item["title"],
                 "preco": f"{item['price']:.2f}".replace(".", ","),
                 "link": item["permalink"]
             }
         
-        return "⚠️ O túnel funcionou, mas a busca por 'iphone' não retornou produtos."
+        # Se chegar aqui, o JSON veio, mas os resultados estão vazios
+        return f"⚠️ JSON recebido, mas vazio: {str(dados)[:100]}"
             
     except Exception as e:
-        return f"❌ Erro na conexão: {str(e)}"
+        return f"❌ Erro: {str(e)}"
 
 def main():
-    print("🚀 Executando JabbaBOT v4...")
+    print("🚀 Iniciando JabbaBOT v5...")
     resultado = buscar_oferta()
     
     if isinstance(resultado, dict):
-        mensagem = f"""🔥 *OFERTA ENCONTRADA (JabbaBOT v4)* 🔥
-
-📦 {resultado['titulo']}
-💰 R$ {resultado['preco']}
-
-🔗 {resultado['link']}
-
-✅ *Status:* Túnel de acesso livre!"""
+        mensagem = f"🔥 *OFERTA ENCONTRADA!*\n\n📦 {resultado['titulo']}\n💰 R$ {resultado['preco']}\n🔗 {resultado['link']}"
         enviar_mensagem(mensagem)
-        print("✅ Sucesso! Mensagem enviada para o Telegram.")
     else:
-        # Caso ocorra erro ou lista vazia, envia para o Telegram
         enviar_mensagem(f"🔍 Debug JabbaBOT: {resultado}")
-        print("Aviso enviado.")
 
 if __name__ == "__main__":
     main()
