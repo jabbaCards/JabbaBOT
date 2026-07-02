@@ -1,3 +1,5 @@
-print("🚀 INICIOU")
-print("SE VOCÊ ESTÁ VENDO ISSO, O BOT RODOU")
-print("FINAL")
+print("INICIO")
+
+print("PASSO 1")
+print("PASSO 2")
+print("PASSO FINAL")
