@@ -1,6 +1,5 @@
 import os
 import requests
-import json
 from bs4 import BeautifulSoup
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
@@ -11,23 +10,9 @@ URL = "https://lista.mercadolivre.com.br/pokemon-tcg"
 KEYWORDS = ["pokemon", "pokémon", "tcg", "etb", "booster", "box"]
 MAX_PRICE = 300
 
-ARQUIVO = "enviados.json"
+enviados = set()
 
-
-def carregar_enviados():
-    try:
-        with open(ARQUIVO, "r") as f:
-            return json.load(f)
-    except:
-        return []
-
-
-def salvar_enviados(lista):
-    with open(ARQUIVO, "w") as f:
-        json.dump(lista, f)
-
-
-def buscar_oferta(enviados):
+def buscar_oferta():
     headers = {"User-Agent": "Mozilla/5.0"}
     r = requests.get(URL, headers=headers)
     soup = BeautifulSoup(r.text, "lxml")
@@ -43,8 +28,12 @@ def buscar_oferta(enviados):
             continue
 
         titulo = titulo_tag.text.lower()
-        preco = int(preco_tag.text.replace(".", ""))
         link = link_tag["href"]
+
+        try:
+            preco = int(preco_tag.text.replace(".", ""))
+        except:
+            continue
 
         if link in enviados:
             continue
@@ -80,14 +69,11 @@ def enviar(oferta):
 
 
 def main():
-    enviados = carregar_enviados()
-
-    oferta = buscar_oferta(enviados)
+    oferta = buscar_oferta()
 
     if oferta:
         enviar(oferta)
-        enviados.append(oferta["link"])
-        salvar_enviados(enviados)
+        enviados.add(oferta["link"])
         print("Oferta enviada")
     else:
         print("Nenhuma oferta nova")
