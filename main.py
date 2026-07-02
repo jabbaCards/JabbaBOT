@@ -4,50 +4,54 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycby5g79zg2nbNKRLUjzIQLyyPvZQzgvsF_juNKEfIBSGJCP0qtodVGbE0XFUduKBsJIl/exec"
+# URL da sua nova implementação do Google Apps Script
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbzfecD82Q7D4jpwT-jsLQlsldy4-JmSiprBb_3wyEkJvNsJVx2kEbPVPdCZRQwirD4/exec"
 
 def enviar_mensagem(texto):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     requests.post(url, json={"chat_id": CHAT_ID, "text": texto})
 
-def buscar_oferta_google():
+def buscar_oferta_platinum():
     try:
-        # Aumentamos o limite para ter mais chances de capturar algo
-        url_busca = f"{URL_DO_GOOGLE}?q=pokemon+tcg+etb&limit=5"
+        # Busca focada em Pokémon TCG via seu script otimizado
+        url_busca = f"{URL_DO_GOOGLE}?q=pokemon+tcg"
         resposta = requests.get(url_busca, timeout=20)
-        
-        # Vamos depurar: se o JSON estiver vazio, ele nos avisa
         dados = resposta.json()
         
-        # Se você quiser ver o que o ML responde, cheque os logs do GitHub Actions
-        print("Resposta bruta do ML:", dados)
+        # Filtra apenas itens de lojas oficiais (Platinum/Gold)
+        if "results" in dados:
+            for item in dados["results"]:
+                if item.get("official_store_id") is not None:
+                    return {
+                        "titulo": item["title"],
+                        "preco": f"{item['price']:.2f}".replace(".", ","),
+                        "link": item["permalink"]
+                    }
+            return "⚠️ O Google acedeu, mas não encontrou resultados ativos de Lojas Oficiais (Platinum)."
         
-        if "results" in dados and len(dados["results"]) > 0:
-            produto = dados["results"][0]
-            titulo = produto["title"]
-            preco = produto["price"]
-            link = produto["permalink"]
-            
-            return {
-                "titulo": titulo,
-                "preco": f"{preco:.2f}".replace(".", ","),
-                "link": link
-            }
-        else:
-            return "⚠️ O Google acessou, mas a lista de 'results' veio vazia. O ML pode ter mudado a forma de listar."
+        return "⚠️ Nenhum resultado encontrado."
             
     except Exception as e:
         return f"❌ Erro na busca: {str(e)}"
 
 def main():
-    resultado = buscar_oferta_google()
+    print("🚀 A buscar ofertas Platinum via Túnel VIP...")
+    resultado = buscar_oferta_platinum()
     
     if isinstance(resultado, dict):
-        mensagem = f"🔥 *OFERTA ENCONTRADA!* \n\n📦 {resultado['titulo']}\n💰 R$ {resultado['preco']}\n🔗 {resultado['link']}"
+        mensagem = f"""🔥 *ALERTA DE OPORTUNIDADE (Platinum)* 🔥
+
+📦 {resultado['titulo']}
+💰 R$ {resultado['preco']}
+
+🔗 {resultado['link']}
+
+💡 *Ação:* Este produto é de uma Loja Oficial. Pode postar no grupo!"""
         enviar_mensagem(mensagem)
+        print("✅ Sucesso! Oferta Platinum enviada.")
     else:
-        # Envia o erro pro Telegram para sabermos o que aconteceu sem precisar abrir o GitHub
         enviar_mensagem(f"🔍 Debug JabbaBOT: {resultado}")
+        print("Aviso enviado.")
 
 if __name__ == "__main__":
     main()
