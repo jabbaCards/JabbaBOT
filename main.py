@@ -9,63 +9,55 @@ def enviar_mensagem(texto):
     requests.post(url, json={"chat_id": CHAT_ID, "text": texto})
 
 def buscar_oferta_api():
-    print("🔎 Consultando API oficial pública do Mercado Livre...")
+    url = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon+tcg+etb&limit=1"
     
-    # Busca direta via API pública do ML (Não sofre bloqueio de HTML!)
-    url = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon%20tcg%20etb&limit=5"
+    # O Segredo: Disfarçar o robô como um navegador real
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
     
     try:
-        resposta = requests.get(url)
+        # Passando o disfarce (headers) junto com a requisição
+        resposta = requests.get(url, headers=headers)
         
-        if resposta.status_code != 200:
-            return f"⚠️ Erro na API do ML: {resposta.status_code}"
+        if resposta.status_code == 403:
+            return "⚠️ Erro 403 Persistente. O ML bloqueou o IP do GitHub."
             
         dados = resposta.json()
-        resultados = dados.get("results", [])
         
-        if not resultados:
-            return "⚠️ A API respondeu, mas não encontrou nenhum produto com esse termo."
+        if "results" in dados and len(dados["results"]) > 0:
+            produto = dados["results"][0]
+            titulo = produto["title"]
+            preco = produto["price"]
+            link = produto["permalink"]
             
-        # Pega o primeiro produto que tiver link válido
-        for item in resultados:
-            titulo = item.get("title")
-            preco = item.get("price")
-            permalink = item.get("permalink")
+            return {
+                "titulo": titulo,
+                "preco": f"{preco:.2f}".replace(".", ","),
+                "link": link
+            }
+        else:
+            return "⚠️ A API não encontrou produtos para essa busca."
             
-            if titulo and preco and permalink:
-                # AQUI É O SEGREDO: No futuro, se você tiver o link de afiliado desse produto,
-                # nós substituímos o 'permalink' pelo SEU LINK CURTO DO ML!
-                return {
-                    "titulo": titulo,
-                    "preco": f"{preco:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-                    "link": permalink
-                }
-                
-        return "⚠️ Nenhum produto válido na lista da API."
-        
     except Exception as e:
-        return f"❌ Erro de conexão: {str(e)}"
+        return f"❌ Erro na API: {str(e)}"
 
 def main():
-    print("🚀 JabbaBOT v2.0 - Iniciando busca via API...")
     resultado = buscar_oferta_api()
     
     if isinstance(resultado, dict):
-        mensagem = f"""🔥 *OFERTA DETECTADA NO MERCADO LIVRE!*
+        mensagem = f"""🔥 *OFERTA DETECTADA!*
 
-📦 *{resultado['titulo']}*
-💰 *Por apenas R$ {resultado['preco']}*
+📦 {resultado['titulo']}
+💰 R$ {resultado['preco']}
 
-🔗 Compre aqui:
-{resultado['link']}
-
-⚡ _Promoção imperdível para o grupo Jabba Cards!_"""
-        
+🔗 Link original: {resultado['link']}
+"""
         enviar_mensagem(mensagem)
-        print("✅ Oferta enviada com sucesso no Telegram!")
+        print("✅ Oferta enviada via API com disfarce!")
     else:
         enviar_mensagem(resultado)
-        print(resultado)
+        print("Aviso enviado.")
 
 if __name__ == "__main__":
     main()
