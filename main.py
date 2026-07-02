@@ -4,12 +4,12 @@ import requests
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-# URL da Amazon (Nova Versão)
-URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbz0YFi47Qy5QHTD03QziUwMiGVyh7sAHn-5_qD0F-OQNnbF6NESZqLtHtQjg-fnRb3z/exec"
+# URL da Amazon (Versão Corrigida)
+URL_DO_GOOGLE = "https://script.google.com/macros/s/AKfycbwUrcE0DF3szlOyDVBywB4FRoiSkPZ7DzkedYEB4pEdYE33VKbH0YEjskQ8kj4ty-Pr/exec"
 
 def main():
     try:
-        # Busca os dados processados pelo seu Script (Amazon)
+        # Busca os dados processados pelo seu Script
         resposta = requests.get(f"{URL_DO_GOOGLE}?q=pokemon", timeout=30)
         dados = resposta.json()
         
@@ -17,9 +17,8 @@ def main():
         preco = dados.get('preco', '0')
         link = dados.get('link', 'Sem link')
         
-        # Formatação da mensagem para o Telegram
         mensagem = (
-            f"🚀 *JABBABOT (Amazon Edition)* 🚀\n\n"
+            f"🚀 *JABBABOT ATIVO*\n\n"
             f"📦 {titulo}\n"
             f"💰 {preco}\n"
             f"🔗 {link}"
@@ -29,7 +28,7 @@ def main():
         requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
                       json={"chat_id": CHAT_ID, "text": mensagem})
         
-        print("✅ Sucesso! Dados da Amazon enviados.")
+        print("✅ Execução finalizada.")
         
     except Exception as e:
         print(f"❌ Erro na execução: {e}")
