@@ -9,19 +9,22 @@ def enviar_mensagem(texto):
     requests.post(url, json={"chat_id": CHAT_ID, "text": texto})
 
 def buscar_oferta_api():
-    url = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon+tcg+etb&limit=1"
+    # A URL original da API do ML
+    url_ml = "https://api.mercadolibre.com/sites/MLB/search?q=pokemon+tcg+etb&limit=1"
     
-    # O Segredo: Disfarçar o robô como um navegador real
+    # Nosso Túnel (Proxy) para esconder o IP do GitHub
+    proxy_url = f"https://api.allorigins.win/raw?url={url_ml}"
+    
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
     }
     
     try:
-        # Passando o disfarce (headers) junto com a requisição
-        resposta = requests.get(url, headers=headers)
+        # Fazendo a busca através do túnel
+        resposta = requests.get(proxy_url, headers=headers, timeout=15)
         
-        if resposta.status_code == 403:
-            return "⚠️ Erro 403 Persistente. O ML bloqueou o IP do GitHub."
+        if resposta.status_code != 200:
+            return f"⚠️ O Túnel também foi bloqueado (Status: {resposta.status_code})"
             
         dados = resposta.json()
         
@@ -37,24 +40,26 @@ def buscar_oferta_api():
                 "link": link
             }
         else:
-            return "⚠️ A API não encontrou produtos para essa busca."
+            return "⚠️ O túnel funcionou, mas a busca não retornou produtos."
             
     except Exception as e:
-        return f"❌ Erro na API: {str(e)}"
+        return f"❌ Erro no Túnel: {str(e)}"
 
 def main():
     resultado = buscar_oferta_api()
     
     if isinstance(resultado, dict):
-        mensagem = f"""🔥 *OFERTA DETECTADA!*
+        mensagem = f"""🔥 *ALERTA DE OFERTA (JabbaBOT)* 🔥
 
 📦 {resultado['titulo']}
 💰 R$ {resultado['preco']}
 
-🔗 Link original: {resultado['link']}
-"""
+🔗 *Link original:* {resultado['link']}
+
+💡 *Ação:* Copie esse link, gere o seu link de afiliado no app do ML e poste no grupo principal!"""
+        
         enviar_mensagem(mensagem)
-        print("✅ Oferta enviada via API com disfarce!")
+        print("✅ Oferta enviada via Túnel!")
     else:
         enviar_mensagem(resultado)
         print("Aviso enviado.")
